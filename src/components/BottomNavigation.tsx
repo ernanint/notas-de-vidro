@@ -1,12 +1,13 @@
-import { StickyNote, CheckSquare, User, BookOpen } from "lucide-react";
+import { StickyNote, CheckSquare, User, BookOpen, Home } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { cn } from "../lib/utils";
 
 const navItems = [
-  { icon: StickyNote, label: "Notas", path: "/" },
-  { icon: CheckSquare, label: "Tarefas", path: "/tasks" },
-  { icon: BookOpen, label: "Compartilhadas", path: "/shared" },
-  { icon: User, label: "Perfil", path: "/profile" },
+  { icon: StickyNote, label: "Notas", path: "/local" },
+  { icon: CheckSquare, label: "Tarefas", path: "/local/tasks" },
+  { icon: BookOpen, label: "Compartilhadas", path: "/local/shared" },
+  { icon: User, label: "Perfil", path: "/local/profile" },
+  { icon: Home, label: "Início", path: "/" },
 ];
 
 export const BottomNavigation = () => {

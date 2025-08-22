@@ -9,25 +9,54 @@ export const useSharedTasks = () => {
   const { getUserName } = useAuth();
 
   useEffect(() => {
-    // Carrega tarefas compartilhadas do localStorage
-    const savedSharedTasks = localStorage.getItem('glassnotes_shared_tasks');
-    if (savedSharedTasks) {
-      try {
-        const parsedTasks = JSON.parse(savedSharedTasks).map((task: any) => ({
-          ...task,
-          createdAt: new Date(task.createdAt),
-          updatedAt: new Date(task.updatedAt),
-          dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
-          changeHistory: task.changeHistory.map((change: any) => ({
-            ...change,
-            timestamp: new Date(change.timestamp)
-          }))
-        }));
-        setSharedTasks(parsedTasks);
-      } catch (error) {
-        console.error('Erro ao carregar tarefas compartilhadas:', error);
+    // Função para carregar tarefas compartilhadas
+    const loadSharedTasks = () => {
+      const savedSharedTasks = localStorage.getItem('glassnotes_shared_tasks');
+      if (savedSharedTasks) {
+        try {
+          const parsedTasks = JSON.parse(savedSharedTasks).map((task: any) => ({
+            ...task,
+            createdAt: new Date(task.createdAt),
+            updatedAt: new Date(task.updatedAt),
+            dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
+            changeHistory: task.changeHistory.map((change: any) => ({
+              ...change,
+              timestamp: new Date(change.timestamp)
+            }))
+          }));
+          setSharedTasks(parsedTasks);
+        } catch (error) {
+          console.error('Erro ao carregar tarefas compartilhadas:', error);
+        }
       }
-    }
+    };
+
+    // Carrega inicialmente
+    loadSharedTasks();
+
+    // Listener para mudanças no localStorage (sincronização em tempo real)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'glassnotes_shared_tasks') {
+        loadSharedTasks();
+      }
+    };
+
+    // Listener para mudanças na mesma aba
+    const handleAuthChange = () => {
+      loadSharedTasks();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('glassnotes_auth_change', handleAuthChange);
+
+    // Atualiza a cada 5 segundos para garantir sincronização
+    const interval = setInterval(loadSharedTasks, 5000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('glassnotes_auth_change', handleAuthChange);
+      clearInterval(interval);
+    };
   }, []);
 
   const saveSharedTasks = (tasksToSave: SharedTask[]) => {

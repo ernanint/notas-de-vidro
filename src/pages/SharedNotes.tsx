@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Users, CheckSquare } from "lucide-react";
+import { Plus, Users, CheckSquare, RefreshCw, Info } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { CreateNoteModal } from "../components/CreateNoteModal";
 import { CreateTaskModal } from "../components/CreateTaskModal";
@@ -8,11 +8,16 @@ import { useSharedNotes } from "../hooks/useSharedNotes";
 import { useSharedTasks } from "../hooks/useSharedTasks";
 import { Switch } from "../components/ui/switch";
 import { Label } from "../components/ui/label";
+import { useAuth } from "../hooks/useAuth";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 
 export const SharedNotes = () => {
   const [showCreateNoteModal, setShowCreateNoteModal] = useState(false);
   const [showCreateTaskModal, setShowCreateTaskModal] = useState(false);
   const [isSharedMode, setIsSharedMode] = useState(true);
+  const [showDebugInfo, setShowDebugInfo] = useState(false);
+  
+  const { getUserName } = useAuth();
 
   const { 
     sharedNotes, 
@@ -84,6 +89,11 @@ export const SharedNotes = () => {
     }
   };
 
+  const handleRefresh = () => {
+    // Força recarregamento dos dados compartilhados
+    window.dispatchEvent(new CustomEvent('glassnotes_auth_change'));
+  };
+
   return (
     <div className="min-h-screen p-6">
       {/* Header */}
@@ -105,6 +115,15 @@ export const SharedNotes = () => {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <Button
+                onClick={handleRefresh}
+                variant="ghost"
+                size="sm"
+                className="mr-2"
+                title="Atualizar dados compartilhados"
+              >
+                <RefreshCw className="w-4 h-4" />
+              </Button>
               <Label htmlFor="shared-mode" className="text-sm">
                 Modo compartilhado
               </Label>
@@ -128,6 +147,41 @@ export const SharedNotes = () => {
             <div className="text-sm text-muted-foreground">Tarefas Compartilhadas</div>
           </div>
         </div>
+
+        {/* Debug Info */}
+        <Card className="glass-card mb-6">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Info className="w-5 h-5 text-blue-500" />
+                Informações de Debug
+              </CardTitle>
+              <Button
+                onClick={() => setShowDebugInfo(!showDebugInfo)}
+                variant="outline"
+                size="sm"
+              >
+                {showDebugInfo ? 'Ocultar' : 'Mostrar'}
+              </Button>
+            </div>
+          </CardHeader>
+          {showDebugInfo && (
+            <CardContent>
+              <div className="space-y-2 text-sm">
+                <p><strong>Usuário atual:</strong> {getUserName()}</p>
+                <p><strong>Total de itens compartilhados:</strong> {allSharedItems.length}</p>
+                <p><strong>Como testar o compartilhamento:</strong></p>
+                <ol className="list-decimal list-inside space-y-1 ml-4 text-muted-foreground">
+                  <li>Crie uma nota compartilhada</li>
+                  <li>Clique no ícone de compartilhar na nota</li>
+                  <li>Digite o nome EXATO do outro usuário</li>
+                  <li>Faça logout e entre com o outro usuário</li>
+                  <li>A nota deve aparecer aqui na aba 'Compartilhadas'</li>
+                </ol>
+              </div>
+            </CardContent>
+          )}
+        </Card>
       </div>
 
       {/* Shared Items List */}

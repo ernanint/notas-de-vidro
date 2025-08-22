@@ -74,6 +74,11 @@ export const CreateNoteModal = ({ isOpen, onClose, onSave, editNote, isSharedMod
       backgroundImage: formData.backgroundImage || undefined,
     };
 
+    console.log('📝 CreateNoteModal - Dados do formulário:', formData);
+    console.log('💾 CreateNoteModal - Dados sendo salvos:', noteData);
+    console.log('🎨 CreateNoteModal - backgroundImage:', formData.backgroundImage ? 'TEM IMAGEM' : 'SEM IMAGEM');
+    console.log('🎨 CreateNoteModal - backgroundColor:', formData.backgroundColor ? 'TEM COR' : 'SEM COR');
+
     onSave(noteData);
     handleClose();
   };
@@ -100,9 +105,18 @@ export const CreateNoteModal = ({ isOpen, onClose, onSave, editNote, isSharedMod
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Verificar tamanho do arquivo (máximo 1MB para evitar problemas com Firestore)
+      if (file.size > 1024 * 1024) {
+        console.log('❌ CreateNoteModal - Arquivo muito grande:', file.size, 'bytes');
+        alert('A imagem é muito grande. Por favor, escolha uma imagem menor que 1MB.');
+        return;
+      }
+
+      console.log('📸 CreateNoteModal - Processando imagem:', file.name, file.size, 'bytes');
       const reader = new FileReader();
       reader.onload = (event) => {
         const imageUrl = event.target?.result as string;
+        console.log('📸 CreateNoteModal - Imagem carregada:', imageUrl.length, 'chars');
         setFormData({ ...formData, backgroundImage: imageUrl });
       };
       reader.readAsDataURL(file);
@@ -136,7 +150,7 @@ export const CreateNoteModal = ({ isOpen, onClose, onSave, editNote, isSharedMod
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent 
-        className="glass-popup max-w-2xl max-h-[90vh] overflow-y-auto"
+        className="glass-modal max-w-2xl w-[95vw] sm:w-full overflow-y-auto"
         style={getBackgroundStyle()}
       >
         <DialogHeader>

@@ -36,13 +36,18 @@ export const useAuth = () => {
     localStorage.setItem('glassnotes_security_question', securityQuestion);
     sessionStorage.setItem('glassnotes_auth', 'true');
     
-    setIsAuthenticated(true);
-    
     toast({
       title: "✅ Conta criada com sucesso",
       description: "Bem-vindo ao GlassNotes!",
-      duration: 3000,
+      duration: 2000,
     });
+    
+    // Delay para garantir que o toast seja exibido antes da navegação
+    setTimeout(() => {
+      setIsAuthenticated(true);
+      // Dispara evento customizado para notificar mudança de autenticação
+      window.dispatchEvent(new CustomEvent('glassnotes_auth_change'));
+    }, 100);
   };
 
   const login = (name: string, password: string) => {
@@ -62,13 +67,20 @@ export const useAuth = () => {
     
     if (user.name === name && user.password === password) {
       sessionStorage.setItem('glassnotes_auth', 'true');
-      setIsAuthenticated(true);
       
       toast({
         title: "✅ Login realizado",
         description: `Bem-vindo de volta, ${user.name}!`,
-        duration: 3000,
+        duration: 2000,
       });
+      
+      // Delay para garantir que o toast seja exibido antes da navegação
+      setTimeout(() => {
+        setIsAuthenticated(true);
+        // Dispara evento customizado para notificar mudança de autenticação
+        window.dispatchEvent(new CustomEvent('glassnotes_auth_change'));
+      }, 100);
+      
       return true;
     } else {
       toast({
@@ -83,13 +95,19 @@ export const useAuth = () => {
 
   const logout = () => {
     sessionStorage.removeItem('glassnotes_auth');
-    setIsAuthenticated(false);
     
     toast({
       title: "👋 Até logo!",
       description: "Você foi desconectado com sucesso",
-      duration: 3000,
+      duration: 2000,
     });
+    
+    // Delay para garantir que o toast seja exibido antes da navegação
+    setTimeout(() => {
+      setIsAuthenticated(false);
+      // Dispara evento customizado para notificar mudança de autenticação
+      window.dispatchEvent(new CustomEvent('glassnotes_auth_change'));
+    }, 100);
   };
 
   const resetPassword = (answer: string) => {

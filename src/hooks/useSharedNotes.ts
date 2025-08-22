@@ -9,24 +9,53 @@ export const useSharedNotes = () => {
   const { getUserName } = useAuth();
 
   useEffect(() => {
-    // Carrega notas compartilhadas do localStorage
-    const savedSharedNotes = localStorage.getItem('glassnotes_shared_notes');
-    if (savedSharedNotes) {
-      try {
-        const parsedNotes = JSON.parse(savedSharedNotes).map((note: any) => ({
-          ...note,
-          createdAt: new Date(note.createdAt),
-          updatedAt: new Date(note.updatedAt),
-          changeHistory: note.changeHistory.map((change: any) => ({
-            ...change,
-            timestamp: new Date(change.timestamp)
-          }))
-        }));
-        setSharedNotes(parsedNotes);
-      } catch (error) {
-        console.error('Erro ao carregar notas compartilhadas:', error);
+    // Função para carregar notas compartilhadas
+    const loadSharedNotes = () => {
+      const savedSharedNotes = localStorage.getItem('glassnotes_shared_notes');
+      if (savedSharedNotes) {
+        try {
+          const parsedNotes = JSON.parse(savedSharedNotes).map((note: any) => ({
+            ...note,
+            createdAt: new Date(note.createdAt),
+            updatedAt: new Date(note.updatedAt),
+            changeHistory: note.changeHistory.map((change: any) => ({
+              ...change,
+              timestamp: new Date(change.timestamp)
+            }))
+          }));
+          setSharedNotes(parsedNotes);
+        } catch (error) {
+          console.error('Erro ao carregar notas compartilhadas:', error);
+        }
       }
-    }
+    };
+
+    // Carrega inicialmente
+    loadSharedNotes();
+
+    // Listener para mudanças no localStorage (sincronização em tempo real)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'glassnotes_shared_notes') {
+        loadSharedNotes();
+      }
+    };
+
+    // Listener para mudanças na mesma aba (quando outro usuário faz login/logout)
+    const handleAuthChange = () => {
+      loadSharedNotes();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('glassnotes_auth_change', handleAuthChange);
+
+    // Atualiza a cada 5 segundos para garantir sincronização
+    const interval = setInterval(loadSharedNotes, 5000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('glassnotes_auth_change', handleAuthChange);
+      clearInterval(interval);
+    };
   }, []);
 
   const saveSharedNotes = (notesToSave: SharedNote[]) => {
@@ -143,7 +172,15 @@ export const useSharedNotes = () => {
     if (!currentUser) return;
 
     const noteToShare = sharedNotes.find(note => note.id === noteId);
-    if (!noteToShare) return;
+    if (!noteToShare) {
+      toast({
+        title: "❌ Erro",
+        description: "Nota não encontrada",
+        variant: "destructive",
+        duration: 3000,
+      });
+      return;
+    }
 
     if (noteToShare.owner !== currentUser) {
       toast({
@@ -198,8 +235,8 @@ export const useSharedNotes = () => {
 
     toast({
       title: "✅ Nota compartilhada",
-      description: `"${noteToShare.title}" foi compartilhada com ${userName}`,
-      duration: 3000,
+      description: `"${noteToShare.title}" foi compartilhada com ${userName}. A nota aparecerá na aba 'Compartilhadas' do usuário.`,
+      duration: 4000,
     });
   };
 

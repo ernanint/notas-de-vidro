@@ -39,7 +39,7 @@ export const ShareModal = ({ isOpen, onClose, item, onShareWithUser, onRemoveUse
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="glass-popup max-w-md">
+      <DialogContent className="glass-modal max-w-md w-[95vw] sm:w-full">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold flex items-center gap-2">
             <Share className="w-5 h-5 text-primary" />
